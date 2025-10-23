@@ -54,7 +54,7 @@
                     <div class="search-header">
                         <el-input v-model="searchKeyword" placeholder="搜索物品名称或固资号" style="width: 300px;">
                             <template #append>
-                                <el-button @click="loadItems" :icon="Search">搜索</el-button>
+                                <el-button @click="loadItems">搜索</el-button>
                             </template>
                         </el-input>
                         
@@ -192,17 +192,14 @@
         
         // ==== 重要配置：请修改这里 ====
         const SUPABASE_CONFIG = {
-            url: 'https://odbqlwjxlvhxdsgzkcki.supabase.co',  // 
-            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYnFsd2p4bHZoeGRzZ3prY2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExOTA0ODQsImV4cCI6MjA3Njc2NjQ4NH0.oORfTnkprbe1ZhyBpyKYI84yGFmXkLtWU5Bbmuz1BsE'                     // 
+            url: 'https://odbqlwjxlvhxdsgzkcki.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYnFsd2p4bHZoeGRzZ3prY2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExOTA0ODQsImV4cCI6MjA3Njc2NjQ4NH0.oORfTnkprbe1ZhyBpyKYI84yGFmXkLtWU5Bbmuz1BsE'
         };
         // ==== 配置结束 ====
 
         const app = createApp({
             setup() {
-                const { ElMessage, ElLoading } = ElementPlus;
-                const Search = {
-                    template: '<el-icon><Search /></el-icon>'
-                };
+                const { ElMessage } = ElementPlus;
 
                 const currentPage = ref('items');
                 const items = ref([]);
@@ -547,7 +544,6 @@ GD2023004,445566,,打印机,仓库A,2`;
                     importData,
                     importLoading,
                     testDataLoading,
-                    Search,
                     switchPage,
                     loadItems,
                     addTestData,
