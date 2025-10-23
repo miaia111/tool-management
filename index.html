@@ -4,564 +4,647 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>物品借用管理系统</title>
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/element-plus"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- 使用国内CDN -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/element-plus/2.3.8/index.min.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-plus/2.3.8/index.full.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.5.1/axios.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; min-height: 100vh; }
-        .header { background: white; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: fixed; width: 100%; top: 0; z-index: 1000; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; height: 60px; max-width: 1200px; margin: 0 auto; }
-        .header h1 { color: #409EFF; font-size: 20px; }
-        .main-content { margin-top: 80px; padding: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
-        .search-header { display: flex; margin-bottom: 20px; gap: 16px; align-items: center; flex-wrap: wrap; }
-        .low-stock { color: #f56c6c; font-weight: bold; }
-        .item-info { background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid #409EFF; }
-        .success-message { background: #f0f9ff; border: 1px solid #91d5ff; color: #096dd9; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
-        .error-message { background: #fef0f0; border: 1px solid #fbc4c4; color: #d93030; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
-        .button-group { display: flex; gap: 12px; margin-top: 20px; }
+        body { 
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #409EFF;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .nav {
+            background: #f5f7fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e4e7ed;
+        }
+        .nav button {
+            background: white;
+            border: 1px solid #dcdfe6;
+            padding: 8px 16px;
+            margin-right: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav button.active {
+            background: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+        .nav button:hover {
+            background: #ecf5ff;
+            border-color: #c6e2ff;
+        }
+        .content {
+            padding: 20px;
+            min-height: 400px;
+        }
+        .card {
+            background: white;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #606266;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #409EFF;
+            outline: none;
+        }
+        .btn {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #66b1ff;
+        }
+        .btn-success {
+            background: #67c23a;
+        }
+        .btn-success:hover {
+            background: #85ce61;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th, .table td {
+            border: 1px solid #e4e7ed;
+            padding: 12px 8px;
+            text-align: left;
+        }
+        .table th {
+            background: #f5f7fa;
+            font-weight: bold;
+        }
+        .table tr:hover {
+            background: #f5f7fa;
+        }
+        .status-available { color: #67c23a; }
+        .status-borrowed { color: #e6a23c; }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .message.success {
+            background: #f0f9ff;
+            border: 1px solid #91d5ff;
+            color: #096dd9;
+        }
+        .message.error {
+            background: #fef0f0;
+            border: 1px solid #fbc4c4;
+            color: #d93030;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <header class="header">
-            <div class="header-content">
+        <div class="container">
+            <div class="header">
                 <h1>📦 物品借用管理系统</h1>
-                <div style="display: flex; gap: 8px;">
-                    <el-button :type="currentPage === 'items' ? 'primary' : ''" @click="switchPage('items')" size="small">物品列表</el-button>
-                    <el-button :type="currentPage === 'return' ? 'primary' : ''" @click="switchPage('return')" size="small">物品归还</el-button>
-                    <el-button :type="currentPage === 'admin' ? 'primary' : ''" @click="switchPage('admin')" size="small">管理后台</el-button>
-                </div>
             </div>
-        </header>
-
-        <main class="main-content">
-            <!-- 连接状态提示 -->
-            <div v-if="connectionError" class="error-message">
-                ❌ 数据库连接失败：{{ connectionError }}
-                <div style="margin-top: 8px; font-size: 14px;">
-                    请检查：1. Supabase配置 2. 网络连接 3. 数据库表是否创建
-                </div>
+            
+            <div class="nav">
+                <button @click="currentPage = 'items'" :class="{ active: currentPage === 'items' }">物品列表</button>
+                <button @click="currentPage = 'borrow'" :class="{ active: currentPage === 'borrow' }">借用物品</button>
+                <button @click="currentPage = 'return'" :class="{ active: currentPage === 'return' }">归还物品</button>
+                <button @click="currentPage = 'admin'" :class="{ active: currentPage === 'admin' }">数据管理</button>
             </div>
 
-            <!-- 物品列表页面 -->
-            <div v-if="currentPage === 'items'">
-                <div class="card">
-                    <h2 style="margin-bottom: 20px;">📋 物品列表</h2>
-                    
-                    <div class="search-header">
-                        <el-input v-model="searchKeyword" placeholder="搜索物品名称或固资号" style="width: 300px;">
-                            <template #append>
-                                <el-button @click="loadItems">搜索</el-button>
-                            </template>
-                        </el-input>
-                        
-                        <el-select v-model="filterLocation" placeholder="选择地点" @change="loadItems" style="width: 200px;">
-                            <el-option label="全部地点" value=""></el-option>
-                            <el-option label="仓库A" value="仓库A"></el-option>
-                            <el-option label="仓库B" value="仓库B"></el-option>
-                            <el-option label="办公室" value="办公室"></el-option>
-                        </el-select>
+            <div class="content">
+                <!-- 物品列表页面 -->
+                <div v-if="currentPage === 'items'">
+                    <div class="card">
+                        <h2>物品列表</h2>
+                        <div class="search-box">
+                            <input type="text" v-model="searchKeyword" placeholder="搜索物品名称或固资号...">
+                            <select v-model="filterLocation">
+                                <option value="">全部地点</option>
+                                <option value="仓库A">仓库A</option>
+                                <option value="仓库B">仓库B</option>
+                                <option value="办公室">办公室</option>
+                            </select>
+                            <button class="btn" @click="loadItems">搜索</button>
+                        </div>
 
-                        <el-button type="success" @click="addTestData" :loading="testDataLoading" style="margin-left: auto;">
-                            + 添加测试数据
-                        </el-button>
-                    </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>固资号</th>
+                                    <th>物品名称</th>
+                                    <th>存放地点</th>
+                                    <th>总数量</th>
+                                    <th>可用数量</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in filteredItems" :key="item.id">
+                                    <td>{{ item.asset_number }}</td>
+                                    <td>{{ item.item_name }}</td>
+                                    <td>{{ item.location }}</td>
+                                    <td>{{ item.total_quantity }}</td>
+                                    <td :class="{ 'status-borrowed': item.available_quantity === 0 }">
+                                        {{ item.available_quantity }}
+                                    </td>
+                                    <td>
+                                        <span :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn" @click="borrowItem(item)" 
+                                                :disabled="item.available_quantity === 0"
+                                                style="padding: 5px 10px; font-size: 12px;">
+                                            借用
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
 
-                    <el-table :data="items" v-loading="loading" style="width: 100%">
-                        <el-table-column prop="asset_number" label="固资号" width="120"></el-table-column>
-                        <el-table-column prop="item_name" label="物品名称"></el-table-column>
-                        <el-table-column prop="location" label="存放地点" width="100"></el-table-column>
-                        <el-table-column prop="total_quantity" label="总数量" width="80"></el-table-column>
-                        <el-table-column prop="available_quantity" label="可用数量" width="80">
-                            <template #default="scope">
-                                <span :class="{ 'low-stock': scope.row.available_quantity === 0 }">
-                                    {{ scope.row.available_quantity }}
-                                </span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="status" label="状态" width="100">
-                            <template #default="scope">
-                                <el-tag :type="getStatusType(scope.row.status)" size="small">
-                                    {{ getStatusText(scope.row.status) }}
-                                </el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="操作" width="120">
-                            <template #default="scope">
-                                <el-button type="primary" size="small" 
-                                          :disabled="scope.row.available_quantity === 0"
-                                          @click="handleBorrow(scope.row)">
-                                    借用
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-
-                    <div v-if="items.length === 0 && !loading" style="text-align: center; padding: 40px; color: #909399;">
-                        📝 暂无物品数据，请先添加测试数据或导入数据
-                    </div>
-                </div>
-
-                <!-- 借用对话框 -->
-                <el-dialog v-model="borrowDialogVisible" title="物品借用" width="500px">
-                    <el-form :model="borrowForm" label-width="100px">
-                        <el-form-item label="物品信息" v-if="selectedItem">
-                            <div class="item-info">
-                                <p><strong>固资号：</strong>{{ selectedItem.asset_number }}</p>
-                                <p><strong>物品名称：</strong>{{ selectedItem.item_name }}</p>
-                                <p><strong>可用数量：</strong>{{ selectedItem.available_quantity }}</p>
-                                <p><strong>存放地点：</strong>{{ selectedItem.location }}</p>
-                            </div>
-                        </el-form-item>
-                        <el-form-item label="借用人姓名" required>
-                            <el-input v-model="borrowForm.borrowerName" placeholder="请输入借用人姓名" style="width: 300px;"></el-input>
-                        </el-form-item>
-                        <el-form-item label="借用数量" required>
-                            <el-input-number v-model="borrowForm.borrowQuantity" :min="1" :max="selectedItem ? selectedItem.available_quantity : 1"></el-input-number>
-                            <span style="margin-left: 12px; color: #909399;">最大可借：{{ selectedItem ? selectedItem.available_quantity : 0 }}</span>
-                        </el-form-item>
-                    </el-form>
-                    <template #footer>
-                        <el-button @click="borrowDialogVisible = false">取消</el-button>
-                        <el-button type="primary" @click="submitBorrow" :loading="borrowLoading">确认借用</el-button>
-                    </template>
-                </el-dialog>
-            </div>
-
-            <!-- 归还页面 -->
-            <div v-if="currentPage === 'return'">
-                <div class="card">
-                    <h2 style="margin-bottom: 20px;">🔙 物品归还</h2>
-                    
-                    <el-form :model="returnForm" label-width="100px">
-                        <el-form-item label="固资号" required>
-                            <el-input v-model="returnForm.assetNumber" placeholder="请输入固资号" style="width: 300px;"></el-input>
-                        </el-form-item>
-                        <el-form-item label="校验码" required>
-                            <el-input v-model="returnForm.verificationCode" placeholder="请输入校验码" style="width: 300px;"></el-input>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="searchBorrowRecord" :loading="searchLoading">查询借用记录</el-button>
-                        </el-form-item>
-                    </el-form>
-
-                    <div v-if="borrowRecord" style="margin-top: 20px;">
-                        <el-divider>借用记录信息</el-divider>
-                        <el-descriptions :column="2" border>
-                            <el-descriptions-item label="物品名称">{{ borrowRecord.item_name }}</el-descriptions-item>
-                            <el-descriptions-item label="固资号">{{ borrowRecord.asset_number }}</el-descriptions-item>
-                            <el-descriptions-item label="借用人">{{ borrowRecord.borrower_name }}</el-descriptions-item>
-                            <el-descriptions-item label="借用数量">{{ borrowRecord.borrow_quantity }}</el-descriptions-item>
-                            <el-descriptions-item label="借用时间">{{ formatDate(borrowRecord.borrow_time) }}</el-descriptions-item>
-                        </el-descriptions>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <el-button type="success" @click="confirmReturn" :loading="returnLoading" size="large">✅ 确认归还</el-button>
+                        <div v-if="filteredItems.length === 0" style="text-align: center; padding: 40px; color: #909399;">
+                            暂无物品数据
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 管理后台 -->
-            <div v-if="currentPage === 'admin'">
-                <div class="card">
-                    <h2 style="margin-bottom: 20px;">⚙️ 物品批量导入</h2>
-                    
-                    <div class="success-message">
-                        💡 <strong>导入格式说明</strong><br>
-                        每行一个物品，格式：固资号,校验码,有效期(可选),物品名称(可选),存放地点(可选),数量(可选)<br>
-                        示例：GD2023001,123456,2024-12-31,笔记本电脑,仓库A,5
-                    </div>
-                    
-                    <el-input v-model="importData" type="textarea" :rows="8" placeholder="请输入导入数据..." style="margin: 16px 0;"></el-input>
-                    
-                    <div class="button-group">
-                        <el-button type="primary" @click="processImport" :loading="importLoading" size="large">🚀 执行导入</el-button>
-                        <el-button @click="importData = ''">清空</el-button>
-                        <el-button @click="showExampleData">查看示例</el-button>
+                <!-- 借用页面 -->
+                <div v-if="currentPage === 'borrow'">
+                    <div class="card">
+                        <h2>借用物品</h2>
+                        <div class="form-group">
+                            <label>选择物品</label>
+                            <select v-model="selectedItemId">
+                                <option value="">请选择物品</option>
+                                <option v-for="item in availableItems" :value="item.id" :key="item.id">
+                                    {{ item.item_name }} ({{ item.asset_number }}) - 可用: {{ item.available_quantity }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div v-if="selectedItem" class="form-group">
+                            <label>物品信息</label>
+                            <div style="background: #f5f7fa; padding: 15px; border-radius: 4px;">
+                                <p><strong>固资号：</strong>{{ selectedItem.asset_number }}</p>
+                                <p><strong>物品名称：</strong>{{ selectedItem.item_name }}</p>
+                                <p><strong>存放地点：</strong>{{ selectedItem.location }}</p>
+                                <p><strong>可用数量：</strong>{{ selectedItem.available_quantity }}</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>借用人姓名</label>
+                            <input type="text" v-model="borrowForm.borrowerName" placeholder="请输入借用人姓名">
+                        </div>
+
+                        <div class="form-group">
+                            <label>借用数量</label>
+                            <input type="number" v-model="borrowForm.quantity" :max="selectedItem ? selectedItem.available_quantity : 1" min="1">
+                        </div>
+
+                        <button class="btn" @click="submitBorrow" :disabled="!canBorrow">确认借用</button>
                     </div>
                 </div>
+
+                <!-- 归还页面 -->
+                <div v-if="currentPage === 'return'">
+                    <div class="card">
+                        <h2>归还物品</h2>
+                        <div class="form-group">
+                            <label>固资号</label>
+                            <input type="text" v-model="returnForm.assetNumber" placeholder="请输入固资号">
+                        </div>
+
+                        <div class="form-group">
+                            <label>校验码</label>
+                            <input type="text" v-model="returnForm.verificationCode" placeholder="请输入校验码">
+                        </div>
+
+                        <button class="btn" @click="searchBorrowRecord">查询借用记录</button>
+
+                        <div v-if="borrowRecord" style="margin-top: 20px;">
+                            <h3>借用记录信息</h3>
+                            <div style="background: #f0f9ff; padding: 15px; border-radius: 4px;">
+                                <p><strong>物品名称：</strong>{{ borrowRecord.item_name }}</p>
+                                <p><strong>固资号：</strong>{{ borrowRecord.asset_number }}</p>
+                                <p><strong>借用人：</strong>{{ borrowRecord.borrower_name }}</p>
+                                <p><strong>借用数量：</strong>{{ borrowRecord.borrow_quantity }}</p>
+                                <p><strong>借用时间：</strong>{{ formatDate(borrowRecord.borrow_time) }}</p>
+                            </div>
+                            <button class="btn btn-success" @click="confirmReturn" style="margin-top: 15px;">确认归还</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 管理页面 -->
+                <div v-if="currentPage === 'admin'">
+                    <div class="card">
+                        <h2>数据管理</h2>
+                        
+                        <div class="message success">
+                            <strong>导入格式说明：</strong><br>
+                            每行一个物品，格式：固资号,校验码,有效期(可选),物品名称,存放地点,数量
+                        </div>
+
+                        <div class="form-group">
+                            <label>导入数据</label>
+                            <textarea v-model="importData" rows="8" placeholder="请输入导入数据，例如：&#10;GD2023001,123456,2024-12-31,笔记本电脑,仓库A,5&#10;GD2023002,654321,,投影仪,办公室,3"></textarea>
+                        </div>
+
+                        <button class="btn" @click="importItems">导入数据</button>
+                        <button class="btn btn-success" @click="addSampleData" style="margin-left: 10px;">添加示例数据</button>
+                    </div>
+                </div>
+
+                <!-- 消息提示 -->
+                <div v-if="message" :class="['message', message.type]">
+                    {{ message.text }}
+                </div>
             </div>
-        </main>
+        </div>
     </div>
 
     <script>
-        const { createApp, ref, onMounted } = Vue;
+        const { createApp, ref, computed, onMounted } = Vue;
         
-        // ==== 重要配置：请修改这里 ====
-        const SUPABASE_CONFIG = {
-            url: 'https://odbqlwjxlvhxdsgzkcki.supabase.co',
-            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYnFsd2p4bHZoeGRzZ3prY2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExOTA0ODQsImV4cCI6MjA3Njc2NjQ4NH0.oORfTnkprbe1ZhyBpyKYI84yGFmXkLtWU5Bbmuz1BsE'
+        // 使用 localStorage 模拟数据库（国内可访问）
+        const storage = {
+            get(key) {
+                try {
+                    return JSON.parse(localStorage.getItem(key) || '[]');
+                } catch {
+                    return [];
+                }
+            },
+            set(key, data) {
+                localStorage.setItem(key, JSON.stringify(data));
+            }
         };
-        // ==== 配置结束 ====
 
-        const app = createApp({
+        createApp({
             setup() {
-                const { ElMessage } = ElementPlus;
-
                 const currentPage = ref('items');
                 const items = ref([]);
-                const loading = ref(false);
                 const searchKeyword = ref('');
                 const filterLocation = ref('');
-                const connectionError = ref('');
+                const message = ref(null);
                 
                 // 借用相关
-                const borrowDialogVisible = ref(false);
-                const selectedItem = ref(null);
-                const borrowForm = ref({ borrowerName: '', borrowQuantity: 1 });
-                const borrowLoading = ref(false);
+                const selectedItemId = ref('');
+                const borrowForm = ref({
+                    borrowerName: '',
+                    quantity: 1
+                });
                 
                 // 归还相关
-                const returnForm = ref({ assetNumber: '', verificationCode: '' });
+                const returnForm = ref({
+                    assetNumber: '',
+                    verificationCode: ''
+                });
                 const borrowRecord = ref(null);
-                const searchLoading = ref(false);
-                const returnLoading = ref(false);
-                
-                // 导入相关
-                const importData = ref('');
-                const importLoading = ref(false);
-                const testDataLoading = ref(false);
-                
-                // 创建 Supabase 客户端
-                const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-                
-                // 测试数据库连接
-                const testConnection = async () => {
-                    try {
-                        const { data, error } = await supabase.from('items').select('count').limit(1);
-                        if (error) throw error;
-                        connectionError.value = '';
-                        return true;
-                    } catch (error) {
-                        connectionError.value = error.message;
-                        return false;
-                    }
-                };
-                
-                // 加载物品列表
-                const loadItems = async () => {
-                    if (!await testConnection()) return;
-                    
-                    loading.value = true;
-                    try {
-                        let query = supabase.from('items').select('*');
-                        
-                        if (searchKeyword.value) {
-                            query = query.or(`item_name.ilike.%${searchKeyword.value}%,asset_number.ilike.%${searchKeyword.value}%`);
-                        }
-                        
-                        if (filterLocation.value) {
-                            query = query.eq('location', filterLocation.value);
-                        }
-                        
-                        const { data, error } = await query.order('created_at', { ascending: false });
-                        
-                        if (error) throw error;
-                        items.value = data || [];
-                    } catch (error) {
-                        ElMessage.error('加载失败: ' + error.message);
-                    } finally {
-                        loading.value = false;
-                    }
-                };
-                
-                // 添加测试数据
-                const addTestData = async () => {
-                    if (!await testConnection()) return;
-                    
-                    testDataLoading.value = true;
-                    try {
-                        const testItems = [
+                const borrowRecords = ref([]);
+
+                // 初始化数据
+                const initializeData = () => {
+                    if (storage.get('items').length === 0) {
+                        // 添加示例数据
+                        const sampleItems = [
                             {
-                                asset_number: 'TEST001',
+                                id: 1,
+                                asset_number: 'GD2023001',
                                 verification_code: '123456',
-                                item_name: '测试笔记本电脑',
+                                item_name: '笔记本电脑',
                                 location: '仓库A',
                                 total_quantity: 5,
                                 available_quantity: 5,
                                 status: 'available'
                             },
                             {
-                                asset_number: 'TEST002', 
+                                id: 2,
+                                asset_number: 'GD2023002',
                                 verification_code: '654321',
-                                item_name: '测试投影仪',
+                                item_name: '投影仪',
                                 location: '办公室',
                                 total_quantity: 3,
                                 available_quantity: 3,
                                 status: 'available'
-                            },
-                            {
-                                asset_number: 'TEST003',
-                                verification_code: '112233',
-                                item_name: '测试办公椅',
-                                location: '仓库B',
-                                total_quantity: 10,
-                                available_quantity: 10,
-                                status: 'available'
                             }
                         ];
-                        
-                        const { error } = await supabase.from('items').insert(testItems);
-                        if (error) throw error;
-                        
-                        ElMessage.success('测试数据添加成功！');
-                        loadItems();
-                    } catch (error) {
-                        ElMessage.error('添加失败: ' + error.message);
-                    } finally {
-                        testDataLoading.value = false;
+                        storage.set('items', sampleItems);
                     }
+                    
+                    items.value = storage.get('items');
+                    borrowRecords.value = storage.get('borrow_records');
                 };
-                
-                // 显示示例数据
-                const showExampleData = () => {
-                    importData.value = `GD2023001,123456,2024-12-31,笔记本电脑,仓库A,5
-GD2023002,654321,2024-06-30,投影仪,办公室,3
-GD2023003,112233,,办公椅,仓库B,10
-GD2023004,445566,,打印机,仓库A,2`;
-                    ElMessage.success('已填充示例数据，请修改后导入');
+
+                // 显示消息
+                const showMessage = (text, type = 'success') => {
+                    message.value = { text, type };
+                    setTimeout(() => {
+                        message.value = null;
+                    }, 3000);
                 };
-                
-                // 页面切换
-                const switchPage = (page) => {
-                    currentPage.value = page;
-                    if (page === 'items') loadItems();
+
+                // 计算属性
+                const filteredItems = computed(() => {
+                    return items.value.filter(item => {
+                        const matchesSearch = !searchKeyword.value || 
+                            item.item_name.includes(searchKeyword.value) || 
+                            item.asset_number.includes(searchKeyword.value);
+                        const matchesLocation = !filterLocation.value || 
+                            item.location === filterLocation.value;
+                        return matchesSearch && matchesLocation;
+                    });
+                });
+
+                const availableItems = computed(() => {
+                    return items.value.filter(item => item.available_quantity > 0);
+                });
+
+                const selectedItem = computed(() => {
+                    return items.value.find(item => item.id == selectedItemId.value);
+                });
+
+                const canBorrow = computed(() => {
+                    return selectedItem.value && 
+                           borrowForm.value.borrowerName && 
+                           borrowForm.value.quantity > 0 &&
+                           borrowForm.value.quantity <= selectedItem.value.available_quantity;
+                });
+
+                // 方法
+                const loadItems = () => {
+                    items.value = storage.get('items');
                 };
-                
-                // 打开借用对话框
-                const handleBorrow = (item) => {
-                    selectedItem.value = item;
-                    borrowForm.value = {
-                        borrowerName: '',
-                        borrowQuantity: 1
+
+                const borrowItem = (item) => {
+                    selectedItemId.value = item.id;
+                    borrowForm.value.quantity = 1;
+                    currentPage.value = 'borrow';
+                };
+
+                const submitBorrow = () => {
+                    if (!canBorrow.value) {
+                        showMessage('请填写完整的借用信息', 'error');
+                        return;
+                    }
+
+                    const item = selectedItem.value;
+                    const borrowRecord = {
+                        id: Date.now(),
+                        item_id: item.id,
+                        asset_number: item.asset_number,
+                        borrower_name: borrowForm.value.borrowerName,
+                        borrow_quantity: borrowForm.value.quantity,
+                        borrow_time: new Date().toISOString(),
+                        status: 'borrowed'
                     };
-                    borrowDialogVisible.value = true;
+
+                    // 更新物品数量
+                    item.available_quantity -= borrowForm.value.quantity;
+                    if (item.available_quantity === 0) {
+                        item.status = 'borrowed';
+                    }
+
+                    // 保存记录
+                    const records = storage.get('borrow_records');
+                    records.push(borrowRecord);
+                    storage.set('borrow_records', records);
+
+                    // 更新物品数据
+                    storage.set('items', items.value);
+
+                    showMessage('借用成功！');
+                    resetBorrowForm();
+                    currentPage.value = 'items';
+                    loadItems();
                 };
-                
-                // 提交借用
-                const submitBorrow = async () => {
-                    if (!borrowForm.value.borrowerName) {
-                        ElMessage.warning('请输入借用人姓名');
-                        return;
-                    }
-                    
-                    borrowLoading.value = true;
-                    try {
-                        // 更新物品数量
-                        const { error: updateError } = await supabase
-                            .from('items')
-                            .update({ 
-                                available_quantity: selectedItem.value.available_quantity - borrowForm.value.borrowQuantity 
-                            })
-                            .eq('id', selectedItem.value.id);
-                        
-                        if (updateError) throw updateError;
-                        
-                        // 创建借用记录
-                        const { error } = await supabase
-                            .from('borrow_records')
-                            .insert({
-                                item_id: selectedItem.value.id,
-                                asset_number: selectedItem.value.asset_number,
-                                borrower_name: borrowForm.value.borrowerName,
-                                borrow_quantity: borrowForm.value.borrowQuantity
-                            });
-                        
-                        if (error) throw error;
-                        
-                        ElMessage.success('借用成功！');
-                        borrowDialogVisible.value = false;
-                        loadItems();
-                    } catch (error) {
-                        ElMessage.error('借用失败: ' + error.message);
-                    } finally {
-                        borrowLoading.value = false;
-                    }
-                };
-                
-                // 查询借用记录
-                const searchBorrowRecord = async () => {
-                    if (!returnForm.value.assetNumber || !returnForm.value.verificationCode) {
-                        ElMessage.warning('请输入固资号和校验码');
-                        return;
-                    }
-                    
-                    searchLoading.value = true;
-                    try {
-                        const { data, error } = await supabase
-                            .from('borrow_records')
-                            .select(`
-                                *,
-                                items:item_id (
-                                    item_name,
-                                    verification_code
-                                )
-                            `)
-                            .eq('asset_number', returnForm.value.assetNumber)
-                            .eq('status', 'borrowed');
-                        
-                        if (error) throw error;
-                        
-                        const record = data.find(r => r.items.verification_code === returnForm.value.verificationCode);
-                        if (!record) {
-                            throw new Error('未找到有效的借用记录');
+
+                const searchBorrowRecord = () => {
+                    const records = storage.get('borrow_records');
+                    const record = records.find(r => 
+                        r.asset_number === returnForm.value.assetNumber && 
+                        r.status === 'borrowed'
+                    );
+
+                    if (record) {
+                        const item = items.value.find(i => i.id === record.item_id);
+                        if (item && item.verification_code === returnForm.value.verificationCode) {
+                            borrowRecord.value = {
+                                ...record,
+                                item_name: item.item_name
+                            };
+                            showMessage('找到借用记录');
+                        } else {
+                            showMessage('校验码错误', 'error');
                         }
-                        
-                        borrowRecord.value = {
-                            ...record,
-                            item_name: record.items.item_name
-                        };
-                        
-                        ElMessage.success('查询成功！');
-                    } catch (error) {
-                        borrowRecord.value = null;
-                        ElMessage.error(error.message);
-                    } finally {
-                        searchLoading.value = false;
+                    } else {
+                        showMessage('未找到借用记录', 'error');
                     }
                 };
-                
-                // 确认归还
-                const confirmReturn = async () => {
-                    returnLoading.value = true;
-                    try {
-                        // 更新物品数量
-                        const { error: updateError } = await supabase
-                            .from('items')
-                            .update({ 
-                                available_quantity: supabase.sql`available_quantity + ${borrowRecord.value.borrow_quantity}`
-                            })
-                            .eq('id', borrowRecord.value.item_id);
-                        
-                        if (updateError) throw updateError;
-                        
+
+                const confirmReturn = () => {
+                    const record = borrowRecord.value;
+                    const item = items.value.find(i => i.id === record.item_id);
+                    
+                    if (item) {
+                        // 恢复物品数量
+                        item.available_quantity += record.borrow_quantity;
+                        item.status = 'available';
+
                         // 更新借用记录
-                        const { error } = await supabase
-                            .from('borrow_records')
-                            .update({ 
-                                status: 'returned',
-                                actual_return_time: new Date().toISOString()
-                            })
-                            .eq('id', borrowRecord.value.id);
-                        
-                        if (error) throw error;
-                        
-                        ElMessage.success('归还成功！');
-                        borrowRecord.value = null;
-                        returnForm.value = { assetNumber: '', verificationCode: '' };
-                    } catch (error) {
-                        ElMessage.error('归还失败: ' + error.message);
-                    } finally {
-                        returnLoading.value = false;
+                        const records = storage.get('borrow_records');
+                        const recordIndex = records.findIndex(r => r.id === record.id);
+                        if (recordIndex > -1) {
+                            records[recordIndex].status = 'returned';
+                            records[recordIndex].return_time = new Date().toISOString();
+                            storage.set('borrow_records', records);
+                        }
+
+                        // 更新物品数据
+                        storage.set('items', items.value);
+
+                        showMessage('归还成功！');
+                        resetReturnForm();
+                        loadItems();
                     }
                 };
-                
-                // 批量导入
-                const processImport = async () => {
+
+                const importItems = () => {
                     if (!importData.value.trim()) {
-                        ElMessage.warning('请输入导入数据');
+                        showMessage('请输入导入数据', 'error');
                         return;
                     }
-                    
+
                     const lines = importData.value.split('\n').filter(line => line.trim());
-                    const itemsToImport = [];
-                    
+                    const newItems = [];
+                    let nextId = Math.max(...items.value.map(i => i.id), 0) + 1;
+
                     for (let line of lines) {
                         const [assetNumber, verificationCode, expiryDate, itemName, location, quantity] = line.split(',');
                         
                         if (assetNumber && verificationCode) {
-                            itemsToImport.push({
+                            newItems.push({
+                                id: nextId++,
                                 asset_number: assetNumber.trim(),
                                 verification_code: verificationCode.trim(),
                                 expiry_date: expiryDate ? expiryDate.trim() : null,
                                 item_name: itemName ? itemName.trim() : '未命名物品',
                                 location: location ? location.trim() : '默认地点',
                                 total_quantity: parseInt(quantity) || 1,
-                                available_quantity: parseInt(quantity) || 1
+                                available_quantity: parseInt(quantity) || 1,
+                                status: 'available'
                             });
                         }
                     }
-                    
-                    if (itemsToImport.length === 0) {
-                        ElMessage.warning('没有有效的物品数据');
+
+                    if (newItems.length === 0) {
+                        showMessage('没有有效的物品数据', 'error');
                         return;
                     }
+
+                    const allItems = [...items.value, ...newItems];
+                    storage.set('items', allItems);
+                    items.value = allItems;
                     
-                    importLoading.value = true;
-                    try {
-                        const { error } = await supabase.from('items').insert(itemsToImport);
-                        if (error) throw error;
-                        
-                        ElMessage.success(`成功导入 ${itemsToImport.length} 个物品`);
-                        importData.value = '';
-                        loadItems();
-                    } catch (error) {
-                        ElMessage.error('导入失败: ' + error.message);
-                    } finally {
-                        importLoading.value = false;
-                    }
+                    showMessage(`成功导入 ${newItems.length} 个物品`);
+                    importData.value = '';
                 };
-                
+
+                const addSampleData = () => {
+                    importData.value = `GD2023001,123456,2024-12-31,笔记本电脑,仓库A,5
+GD2023002,654321,2024-06-30,投影仪,办公室,3
+GD2023003,112233,,办公椅,仓库B,10
+GD2023004,445566,,打印机,仓库A,2`;
+                    showMessage('已填充示例数据，点击"导入数据"按钮导入');
+                };
+
                 // 工具函数
-                const getStatusType = (status) => {
-                    const types = { available: 'success', borrowed: 'warning', maintenance: 'danger' };
-                    return types[status] || 'info';
+                const getStatusClass = (status) => {
+                    const classes = {
+                        available: 'status-available',
+                        borrowed: 'status-borrowed'
+                    };
+                    return classes[status] || '';
                 };
-                
+
                 const getStatusText = (status) => {
-                    const texts = { available: '可用', borrowed: '已借用', maintenance: '维修中' };
+                    const texts = {
+                        available: '可用',
+                        borrowed: '已借用'
+                    };
                     return texts[status] || status;
                 };
-                
+
                 const formatDate = (dateString) => {
                     return new Date(dateString).toLocaleString('zh-CN');
                 };
-                
+
+                const resetBorrowForm = () => {
+                    selectedItemId.value = '';
+                    borrowForm.value = {
+                        borrowerName: '',
+                        quantity: 1
+                    };
+                };
+
+                const resetReturnForm = () => {
+                    returnForm.value = {
+                        assetNumber: '',
+                        verificationCode: ''
+                    };
+                    borrowRecord.value = null;
+                };
+
                 // 初始化
                 onMounted(() => {
-                    testConnection();
-                    loadItems();
+                    initializeData();
                 });
-                
+
                 return {
                     currentPage,
                     items,
-                    loading,
                     searchKeyword,
                     filterLocation,
-                    connectionError,
-                    borrowDialogVisible,
-                    selectedItem,
+                    message,
+                    selectedItemId,
                     borrowForm,
-                    borrowLoading,
                     returnForm,
                     borrowRecord,
-                    searchLoading,
-                    returnLoading,
-                    importData,
-                    importLoading,
-                    testDataLoading,
-                    switchPage,
+                    importData: ref(''),
+                    filteredItems,
+                    availableItems,
+                    selectedItem,
+                    canBorrow,
                     loadItems,
-                    addTestData,
-                    showExampleData,
-                    handleBorrow,
+                    borrowItem,
                     submitBorrow,
                     searchBorrowRecord,
                     confirmReturn,
-                    processImport,
-                    getStatusType,
+                    importItems,
+                    addSampleData,
+                    getStatusClass,
                     getStatusText,
                     formatDate
                 };
             }
-        });
-        
-        app.use(ElementPlus);
-        app.mount('#app');
+        }).mount('#app');
     </script>
 </body>
 </html>
